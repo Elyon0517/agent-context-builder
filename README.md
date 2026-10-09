@@ -2,6 +2,8 @@
 
 # ContextKit
 
+**English · [简体中文](README.zh-CN.md)**
+
 ### Memory you can trace. Context you can correct.
 
 Evidence-backed memory and context snapshots for stateful applications.
