@@ -1,27 +1,82 @@
+<div align="center">
+
 # ContextKit
+
+### Memory you can trace. Context you can correct.
 
 Evidence-backed memory and context snapshots for stateful applications.
 
-ContextKit keeps application observations, user corrections, and current context consistent across interactions. It is a small Python library with a dependency-free core, optional MongoDB storage and Redis caching, and a replaceable vector index contract.
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
+[![Version 0.1.0](https://img.shields.io/badge/Version-0.1.0-6366F1?style=flat-square)](CHANGELOG.md)
+[![Status alpha](https://img.shields.io/badge/Status-Alpha-F59E0B?style=flat-square)](#current-limits)
+[![License MIT](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE)
+[![Initial validation](https://img.shields.io/badge/Initial_validation-103_tests_passed-10B981?style=flat-square)](docs/validation.md)
+[![GitHub stars](https://img.shields.io/github/stars/Elyon0517/contextkit?style=social)](https://github.com/Elyon0517/contextkit/stargazers)
 
-**Status:** early alpha, Python 3.11+. No model API key or external service is needed for the examples. The distribution is named `contextkit-state`; the import is `contextkit`. Install from this repository; no package-index release is assumed.
+**Like ContextKit? [Give it a star ⭐](https://github.com/Elyon0517/contextkit)**
 
-## The problem
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Examples](#examples) · [Architecture](docs/architecture.md) · [Contributing](CONTRIBUTING.md)
 
-A support assistant remembers that a customer prefers short explanations. The customer corrects it. A background process later redelivers an old observation. Another process still has the old embedding. Which preference should the next interaction use?
+</div>
 
-Storing conversation history does not settle that question. An application also needs source versions, user override rules, revocation, and a fresh view of canonical state.
+---
 
-ContextKit provides:
+ContextKit keeps observations, user corrections, and current context consistent across interactions. Start locally with a **dependency-free Python core**, then add MongoDB storage, Redis caching, or your own vector index.
 
-- Scoped memory: every operation requires both a tenant and a subject.
-- Evidence references and source versions for each observation.
-- Idempotent events, stale-source rejection, and explicit identity conflicts.
-- User corrections protected from subsequent inferred updates.
-- Forget tombstones that block source replay and clear canonical content.
-- Atomic revision-guarded updates to memory, receipts, and operation records.
-- Fresh context snapshots with source authority, explicit absent/failed states, resource scope, and whole-record character budgeting.
-- Vector retrieval that checks every candidate against canonical ownership, status, and memory version.
+**No model API key. No external services needed for the core examples.**
+
+## How it works
+
+```mermaid
+flowchart TB
+    subgraph Inputs["1 · Capture changes"]
+        O["Observation + source version + evidence"]
+        U["User correction or forget request"]
+    end
+
+    O --> E["2 · Apply memory rules"]
+    U --> E
+    E --> S[("Canonical memory · atomic revision check")]
+
+    S --> C["3 · Compile fresh context"]
+    P["Application facts + source authority"] --> C
+    C --> N["Context snapshot for the next interaction"]
+
+    S -. "rebuild projection" .-> V["Vector index"]
+    V --> G["Validate candidate scope, status and version"]
+    S --> G
+    G --> R["Current active memories"]
+
+    classDef input fill:#EFF6FF,stroke:#3B82F6,color:#172554
+    classDef core fill:#EEF2FF,stroke:#6366F1,color:#312E81
+    classDef output fill:#ECFDF5,stroke:#10B981,color:#064E3B
+    classDef derived fill:#FFF7ED,stroke:#F59E0B,color:#78350F
+    class O,U,P input
+    class E,S,C,G core
+    class N,R output
+    class V derived
+```
+
+**Observe → version → correct or forget → compile again.** The canonical store decides what is current. Cached snapshots and vector indexes are derived views; stale vector hits are checked against the store before recall.
+
+[Explore the architecture →](docs/architecture.md)
+
+## Why ContextKit
+
+A customer corrects a remembered preference. An old event arrives again. A vector index still contains the previous embedding. The next interaction needs the corrected state, with a clear record of where it came from.
+
+| Capability | What it gives your application |
+| --- | --- |
+| 🔎 **Evidence-backed memory** | Source references and versions travel with each observation. |
+| ✏️ **User-controlled corrections** | Explicit corrections stay protected from later inferred updates. |
+| 🧹 **Forget with replay protection** | Canonical content is cleared and a tombstone blocks source replay. |
+| 🔐 **Scoped state** | Tenant and subject boundaries on every memory operation. |
+| 🔁 **Replay-safe mutations** | Atomic receipts and revision checks handle repeated or concurrent writes. |
+| 🧭 **Fresh context snapshots** | Source authority, absent/failed states, current resource, and whole-record budgeting. |
+| 🧩 **Replaceable adapters** | In-memory or MongoDB state, optional Redis cache, and a vector index contract. |
+
+> [!NOTE]
+> ContextKit is **early alpha**. Forgetting is logical revocation; physical erasure and already-running interactions have separate lifecycle requirements. See [current limits](#current-limits).
 
 ## Install
 
@@ -32,6 +87,8 @@ python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
 ```
+
+The distribution is named `contextkit-state`; the Python import is `contextkit`. Installation currently uses this repository.
 
 For optional adapters and development tools:
 
@@ -104,29 +161,6 @@ python examples/vector_recall.py
 
 All examples use synthetic data. The vector example uses a tiny deterministic text embedder to demonstrate the contract, not retrieval quality.
 
-## Architecture
-
-```mermaid
-flowchart LR
-    O[Versioned observation] --> E[MemoryEngine]
-    U[Correction or forget] --> E
-    E --> S[SubjectStore atomic CAS]
-    S --> C[ContextCompiler]
-    P[Application sources] --> C
-    C --> N[Versioned context snapshot]
-    C -. optional .-> R[Redis cache]
-    S --> B[Projection rebuild]
-    B --> V[VectorIndex]
-    V --> Q[Recall candidates]
-    S --> G[Canonical validation]
-    Q --> G
-    G --> M[Active current memories]
-```
-
-The store is authoritative. The index and cache are derived. A stale index may reduce recall, but it cannot make a forgotten or superseded version pass canonical validation.
-
-See [architecture](docs/architecture.md), [behavior contracts](docs/contracts.md), and [adapter guide](docs/adapters.md).
-
 ## Adapters
 
 | Role | Included implementation | Contract |
@@ -162,6 +196,9 @@ Initial release check results are recorded in [validation](docs/validation.md).
 
 ## Current limits
 
+<details>
+<summary><strong>Read the deployment and consistency boundaries</strong></summary>
+
 - The synchronous API fits small application backends and reference integrations. Use a worker thread from an async server; an async adapter is not included.
 - MongoDB stores one aggregate per subject. This makes each mutation atomic without a multi-document transaction, but is intended for bounded profiles; MongoDB's document size limit and contention constrain growth. Receipts and operations currently have no compaction.
 - Forget clears the canonical content and evidence, retains a source tombstone, and excludes the record from new reads. It is **logical revocation**, not certified physical erasure. Previously returned snapshots, Redis entries until TTL, backups, and vector projections until rebuild require separate lifecycle handling.
@@ -170,6 +207,8 @@ Initial release check results are recorded in [validation](docs/validation.md).
 - Structured context is marked as untrusted data and delimiter characters are escaped. Runtime policy, tool authorization, and prompt-injection defenses remain application responsibilities.
 - No automatic conversation extraction, semantic conflict resolution, task queue, distributed lease worker, model integration, or evaluation framework is included.
 
+</details>
+
 ## Design origin
 
 The design addresses problems encountered in stateful user-facing applications: conflicting sources, stale session context, repeated background events, and user control over inferred memory. This repository implements those behaviors independently using general-purpose contracts and synthetic examples. It contains no application-specific prompts, business assets, or production data.
@@ -177,3 +216,13 @@ The design addresses problems encountered in stateful user-facing applications: 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports with an event sequence and expected state are especially useful. License: [MIT](LICENSE).
+
+---
+
+<div align="center">
+
+**Found this useful? [Star ContextKit ⭐](https://github.com/Elyon0517/contextkit)**
+
+[Report a bug](https://github.com/Elyon0517/contextkit/issues) · [Explore examples](examples) · [Read the contracts](docs/contracts.md)
+
+</div>
