@@ -43,3 +43,8 @@ Recall queries the vector index first, then loads canonical state. Each hit must
 CAS gives atomic subject mutations, not a transaction across providers, caches, vector stores, or running interactions. Canonical reads define the freshness boundary. A mutation after that read can make an already-returned snapshot stale. Applications needing stronger interaction guarantees must coordinate turn admission, cancellation, or revalidation before side effects.
 
 This release has no lease worker and makes no exactly-once claim about external side effects. It supplies replay-safe canonical mutations, not an event transport. A queue consumer can call `observe` with a stable event ID and retry failures.
+
+
+## Component boundary in 0.2
+
+Memory implementation lives in Agent Memory Kit. Compatibility imports preserve class identity; ContextKit does not maintain a second memory kernel. ContextManager reads session summary/history and compiles canonical memory plus ContextSource facts (including RAG/profile providers). A caller-supplied retrieval callback returns IDs, then the compiler reads canonical active records. Token counting includes the serialized envelope and reserved response/tool space. Budget trimming removes summary, oldest recent messages, memories, then facts. Model execution and evaluation are separate concerns.

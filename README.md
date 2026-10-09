@@ -4,222 +4,113 @@
 
 **English · [简体中文](README.zh-CN.md)**
 
-### Memory you can trace. Context you can correct.
+### Sessions in order. Context within budget.
 
-Evidence-backed memory and context snapshots for stateful applications.
+Session and context orchestration for stateful applications.
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml) [![Version 0.1.1](https://img.shields.io/badge/Version-0.1.1-6366F1?style=flat-square)](CHANGELOG.md) [![Status alpha](https://img.shields.io/badge/Status-Alpha-F59E0B?style=flat-square)](#current-limits) [![License MIT](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE) [![Validation](https://img.shields.io/badge/Validation-114_tests_passed-10B981?style=flat-square)](docs/validation.md) [![GitHub stars](https://img.shields.io/github/stars/Elyon0517/contextkit?style=social)](https://github.com/Elyon0517/contextkit/stargazers)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml) [![Version](https://img.shields.io/badge/version-0.2.0-indigo)](CHANGELOG.md) [![Validation](https://img.shields.io/badge/validation-123_tests_passed-green)](docs/validation.md) [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![Alpha](https://img.shields.io/badge/status-alpha-orange)](#limitations) [![Stars](https://img.shields.io/github/stars/Elyon0517/contextkit?style=flat)](https://github.com/Elyon0517/contextkit/stargazers)
 
-**Like ContextKit? [Give it a star ⭐](https://github.com/Elyon0517/contextkit)**
+**Find this useful? [Give it a star ⭐](https://github.com/Elyon0517/contextkit)**
 
-[Quick start](#quick-start) · [How it works](#how-it-works) · [Examples](#examples) · [Architecture](docs/architecture.md) · [Contributing](CONTRIBUTING.md)
+[Architecture](docs/architecture.md) · [Examples](examples) · [Validation](docs/validation.md) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
----
-
-ContextKit keeps observations, user corrections, and current context consistent across interactions. Start locally with a **dependency-free Python core**, then add MongoDB storage, Redis caching, or your own vector index.
-
-**No model API key. No external services needed for the core examples.**
-
-## How it works
-
 ```mermaid
-flowchart TB
-    subgraph Inputs["1 · Capture changes"]
-        O["Observation + source version + evidence"]
-        U["User correction or forget request"]
-    end
-
-    O --> E["2 · Apply memory rules"]
-    U --> E
-    E --> S[("Canonical memory · atomic revision check")]
-
-    S --> C["3 · Compile fresh context"]
-    P["Application facts + source authority"] --> C
-    C --> N["Context snapshot for the next interaction"]
-
-    S -. "rebuild projection" .-> V["Vector index"]
-    V --> G["Validate candidate scope, status and version"]
-    S --> G
-    G --> R["Current active memories"]
-
-    classDef input fill:#EFF6FF,stroke:#3B82F6,color:#172554
+flowchart TD
+    Q[Current query + user/session] --> M[ContextManager]
+    H[Session history + summary] --> M
+    R[Relevant memory IDs] --> C[ContextCompiler]
+    S[Canonical memory via Agent Memory Kit] --> C
+    F[Profile / RAG / application sources] --> C
+    C --> M
+    M --> B[Serialized context + token budget]
+    B --> A[Application / agent]
     classDef core fill:#EEF2FF,stroke:#6366F1,color:#312E81
     classDef output fill:#ECFDF5,stroke:#10B981,color:#064E3B
-    classDef derived fill:#FFF7ED,stroke:#F59E0B,color:#78350F
-    class O,U,P input
-    class E,S,C,G core
-    class N,R output
-    class V derived
+    class M,C core
+    class B,A output
 ```
 
-**Observe → version → correct or forget → compile again.** The canonical store decides what is current. Cached snapshots and vector indexes are derived views; stale vector hits are checked against the store before recall.
+## Three independent components
 
-[Explore the architecture →](docs/architecture.md)
-
-## Why ContextKit
-
-A customer corrects a remembered preference. An old event arrives again. A vector index still contains the previous embedding. The next interaction needs the corrected state, with a clear record of where it came from.
-
-| Capability | What it gives your application |
+| Repository | Responsibility |
 | --- | --- |
-| 🔎 **Evidence-backed memory** | Source references and versions travel with each observation. |
-| ✏️ **User-controlled corrections** | Explicit corrections stay protected from later inferred updates. |
-| 🧹 **Forget with replay protection** | Canonical content is cleared and a tombstone blocks source replay. |
-| 🔐 **Scoped state** | Tenant and subject boundaries on every memory operation. |
-| 🔁 **Replay-safe mutations** | Atomic receipts and revision checks handle repeated or concurrent writes. |
-| 🧭 **Fresh context snapshots** | Source authority, absent/failed states, current resource, and whole-record budgeting. |
-| 🧩 **Replaceable adapters** | In-memory or MongoDB state, optional Redis cache, and a vector index contract. |
+| [Agent Memory Kit](https://github.com/Elyon0517/agent-memory-kit) | Long-term memory, storage, retrieval, session history and summary state |
+| **ContextKit** | Session context assembly, source arbitration and budgeting |
+| [FlowEval](https://github.com/Elyon0517/floweval) | Independent experiments and strategy evaluation |
 
-> [!NOTE]
-> ContextKit is **early alpha**. Forgetting is logical revocation; physical erasure and already-running interactions have separate lifecycle requirements. See [current limits](#current-limits).
-
-## Install
-
-```bash
-git clone https://github.com/Elyon0517/contextkit.git
-cd contextkit
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -e .
-```
-
-The distribution is named `contextkit-state`; the Python import is `contextkit`. Installation currently uses this repository.
-
-For optional adapters and development tools:
-
-```bash
-python -m pip install -e '.[dev,mongo,redis]'
-```
+ContextKit 0.2 delegates its memory kernel to Agent Memory Kit rather than maintaining a duplicate. Existing `contextkit.MemoryEngine`, models and storage adapter imports remain compatibility exports. ContextKit owns orchestration; it does not execute models or tools.
 
 ## Quick start
 
-```python
-from contextkit import ContextCompiler, MemoryEngine, Observation, Scope
-from contextkit.adapters import InMemoryStore
+Python 3.11+. Git installation resolves the pinned Memory Kit release. Packages are currently distributed through GitHub, not PyPI.
 
-store = InMemoryStore()
-engine = MemoryEngine(store)
-scope = Scope(tenant="helpdesk", subject="customer-42")
-
-result = engine.observe(
-    scope,
-    Observation(
-        event_id="message-17:preference",
-        source_key="response-preference",
-        source_version=1,
-        content="Prefers short explanations",
-        evidence=("message:17",),
-        kind="preference",
-        confidence=0.7,
-    ),
-)
-
-corrected = engine.correct(
-    scope,
-    result.memory.id,
-    "Prefers detailed explanations",
-    evidence=("message:18",),
-    expected_version=result.memory.version,
-    operation_id="correction:18",
-)
-
-snapshot = ContextCompiler(store).compile(
-    scope, request="Explain the refund process", resource="ticket:101"
-)
-assert snapshot.to_dict()["memories"][0]["user_override"]
-
-engine.forget(
-    scope,
-    corrected.memory.id,
-    expected_version=corrected.memory.version,
-    operation_id="forget:19",
-)
-assert ContextCompiler(store).compile(scope).to_dict()["memories"] == []
+```bash
+pip install "contextkit-state @ git+https://github.com/Elyon0517/contextkit.git@v0.2.0"
 ```
 
-The application authenticates the caller, constructs the authorized scope, and supplies real source references. Evidence references identify provenance; the library does not verify that the references support the claim. Confidence is supplied by the application and is not a calibrated probability.
+```python
+from agent_memory_kit import Message, Scope, SessionMemory
+from contextkit import ContextCompiler, ContextManager
+from contextkit.adapters import InMemoryStore
+
+scope = Scope("demo", "user-1")
+sessions = SessionMemory()
+sessions.append(scope, "chat-1", Message("m1", "user", "Plan dinner"))
+manager = ContextManager(
+    ContextCompiler(InMemoryStore()), sessions, count_tokens=len
+)  # Demonstration character counter.
+context = manager.build(
+    scope, session_id="chat-1", query="Suggest a menu", max_tokens=2000, reserved_tokens=300
+)
+print(context.render())
+```
+
+Supply a model tokenizer instead of `len` for actual token budgeting. The count includes the complete serialized envelope; reserve space for output, tools and prompt material added by your application.
+
+## Capabilities
+
+| Capability | Behavior |
+| --- | --- |
+| Session context | Combine a summary and messages after its coverage boundary |
+| Source authority | Resolve conflicting profile/application/RAG facts with declared priorities |
+| Failure semantics | Failed higher-authority sources block weaker facts; absent sources allow fallback |
+| Retrieval bridge | Optional `retrieve_memory_ids(scope, query)` callback selects IDs; compile re-reads canonical active records |
+| Budgeting | Apply both character and caller-supplied token limits without truncating records |
+| Provenance | Preserve source revisions, evidence, omission counts and content-addressed snapshots |
+| Cache | Optional Redis cache; canonical storage remains the authority |
+
+Without a retrieval callback, all active canonical memories are considered. RAG/profile integrations use `ContextSource`, rather than assuming a particular database or model provider. The callback's ranking is not preserved: selected memories use compiler ordering (user corrections, confidence, ID).
 
 ## Examples
 
-```bash
-python examples/support_memory.py
-python examples/source_authority.py
-python examples/vector_recall.py
-```
+- [Session and context assembly](examples/session_context.py)
+- [Source authority and failure behavior](examples/source_authority.py)
+- [Compatibility memory example](examples/support_memory.py)
+- [Vector retrieval](examples/vector_recall.py)
+- [MongoDB and Redis](examples/mongo_redis.py)
 
-| Example | Behavior |
-| --- | --- |
-| [Support memory](examples/support_memory.py) | Observe, correct, replay, forget, and compile the next interaction |
-| [Source authority](examples/source_authority.py) | Use authoritative facts; permit fallback on absence, block it on failure |
-| [Vector recall](examples/vector_recall.py) | Reject stale index entries after correction or forgetting, then rebuild |
-| [MongoDB and Redis](examples/mongo_redis.py) | Persist memory and optionally cache rendered snapshots using explicit local service URLs |
+## Limitations
 
-All examples use synthetic data. The vector example uses a tiny deterministic text embedder to demonstrate the contract, not retrieval quality.
+Early alpha, synchronous interfaces. Session storage is currently process-local. There is no built-in model call, agent execution, tool lifecycle or tokenizer. Sources are read separately, without a transaction across providers; an already returned snapshot cannot be revoked. `ContextCompiler` uses characters; `ContextManager` additionally uses your token counter.
 
-## Adapters
+On overflow the manager removes summary first, then oldest recent messages, lower-priority memories, and facts. Messages already covered by a summary are not restored if the summary is omitted. Query and structural envelope are never truncated; if those alone exceed the budget, `ContextBudgetExceeded` is raised. Caller-added prompt/tool text must be accounted for via reservations. Memory ranking/expiry/persistence limits belong to [Agent Memory Kit](https://github.com/Elyon0517/agent-memory-kit).
 
-| Role | Included implementation | Contract |
-| --- | --- | --- |
-| Canonical subject state | `InMemoryStore`, `MongoStore` | Atomic compare-and-swap of the complete subject aggregate |
-| Snapshot cache | `InMemoryCache`, `RedisCache` | Content-addressed payloads; failures never replace canonical reads |
-| Vector projection | `InMemoryVectorIndex` | Atomic scoped replacement with a monotonic projection revision |
-| Embeddings | Application-supplied `Embedder` | Deterministic dimensions and model configuration per index |
-| Context sources | Application-supplied `ContextSource` | Declared fact keys, authority, revision, and read status |
-
-There is no bundled Milvus, Qdrant, or other remote vector database adapter yet. The `VectorIndex` protocol is the extension boundary; merely wrapping a remote upsert call does not satisfy its atomic replacement contract.
-
-## Tests and checks
+## Development
 
 ```bash
-python -m pytest
-python -m ruff check .
-python -m ruff format --check .
-python -m mypy
+python -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev,mongo,redis]'
+pytest -q
+ruff check .
+ruff format --check .
+mypy
 ```
 
-The default suite exercises the memory contract against the in-memory store and a MongoDB emulator, plus cache and retrieval behavior. Three live integration tests are skipped unless explicitly configured:
+The default suite skips three live service tests. [Validation](docs/validation.md) explains the isolated MongoDB/Redis checks and their limits.
 
-```bash
-CONTEXTKIT_TEST_MONGO_URI=mongodb://127.0.0.1:27017 \
-CONTEXTKIT_TEST_REDIS_URL=redis://127.0.0.1:6379/0 \
-python -m pytest -m integration
-```
+## License
 
-Use isolated test servers. The MongoDB tests create a uniquely named test database and drop that database afterward. The Redis test removes only its generated test key. No repository-hosted automated workflows are required.
-
-Release check results are recorded in [validation](docs/validation.md).
-
-## Current limits
-
-<details>
-<summary><strong>Read the deployment and consistency boundaries</strong></summary>
-
-- The synchronous API fits small application backends and reference integrations. Use a worker thread from an async server; an async adapter is not included.
-- MongoDB stores one aggregate per subject. This makes each mutation atomic without a multi-document transaction, but is intended for bounded profiles; MongoDB's document size limit and contention constrain growth. Receipts and operations currently have no compaction.
-- Forget clears the canonical content and evidence, retains a source tombstone, and excludes the record from new reads. It is **logical revocation**, not certified physical erasure. Previously returned snapshots, Redis entries until TTL, backups, and vector projections until rebuild require separate lifecycle handling.
-- A read reflects state at its canonical read boundary. A later mutation cannot retract context already handed to a running interaction. Providers and memory are not read in one cross-database transaction.
-- Context budgeting measures characters after escaping, not tokens. It drops whole memories first, then the lowest-authority facts. It never cuts JSON strings in half.
-- Structured context is marked as untrusted data and delimiter characters are escaped. Runtime policy, tool authorization, and prompt-injection defenses remain application responsibilities.
-- No automatic conversation extraction, semantic conflict resolution, task queue, distributed lease worker, model integration, or evaluation framework is included.
-
-</details>
-
-## Design origin
-
-The design addresses problems encountered in stateful user-facing applications: conflicting sources, stale session context, repeated background events, and user control over inferred memory. This repository implements those behaviors independently using general-purpose contracts and synthetic examples. It contains no application-specific prompts, business assets, or production data.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports with an event sequence and expected state are especially useful. License: [MIT](LICENSE).
-
----
-
-<div align="center">
-
-**Found this useful? [Star ContextKit ⭐](https://github.com/Elyon0517/contextkit)**
-
-[Report a bug](https://github.com/Elyon0517/contextkit/issues) · [Explore examples](examples) · [Read the contracts](docs/contracts.md)
-
-</div>
+[MIT](LICENSE) © Elyon Li

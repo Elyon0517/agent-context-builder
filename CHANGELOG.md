@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+- Delegate canonical memory and storage to independent Agent Memory Kit, preserving imports.
+- Add ContextManager for session summaries, recent history, optional retrieval selection and tokenizer-driven budgets.
+- Keep FlowEval as an independent evaluation component.
+
+
 ## 0.1.1
 
 - Reject mutable projection entries and vectors so callers cannot alter an index outside a revision-guarded replacement.

@@ -131,12 +131,18 @@ class ContextCompiler:
         request: str = "",
         resource: str | None = None,
         max_chars: int = 8000,
+        memory_ids: tuple[str, ...] | None = None,
     ) -> ContextSnapshot:
         require_revision(max_chars, "max_chars", 1)
         if not isinstance(request, str) or (
             resource is not None and not isinstance(resource, str)
         ):
             raise ValueError("request and resource must be text")
+        if memory_ids is not None and (
+            not isinstance(memory_ids, tuple)
+            or any(not isinstance(value, str) or not value for value in memory_ids)
+        ):
+            raise ValueError("memory_ids must be a tuple of nonempty IDs")
         state = self.store.load(scope)
         results: list[tuple[ContextSource, SourceResult]] = []
         for source in self.sources:
@@ -196,6 +202,7 @@ class ContextCompiler:
                 key=lambda m: (not m.user_override, -m.confidence, m.id),
             )
             if memory.status == MemoryStatus.ACTIVE
+            and (memory_ids is None or memory.id in memory_ids)
         ]
         envelope: dict[str, Any] = {
             "schema_version": 1,

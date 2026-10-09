@@ -22,7 +22,7 @@ from contextkit.models import (
     Scope,
 )
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = [
     "ContextBudgetExceeded",
@@ -45,3 +45,7 @@ __all__ = [
     "SourceStatus",
     "SourceUnavailable",
 ]
+
+from contextkit.session import ContextManager as ContextManager
+
+__all__.append("ContextManager")

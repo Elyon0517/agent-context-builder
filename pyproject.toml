@@ -4,9 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "contextkit-state"
-version = "0.1.1"
+version = "0.2.0"
 description = "Evidence-backed memory and context snapshots for stateful applications"
 readme = "README.md"
+dependencies = ["agent-memory-kit @ git+https://github.com/Elyon0517/agent-memory-kit.git@v0.1.0"]
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{name = "Elyon Li"}]
@@ -45,3 +46,6 @@ select = ["E", "F", "I", "B", "UP"]
 python_version = "3.11"
 strict = true
 files = ["src/contextkit"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
