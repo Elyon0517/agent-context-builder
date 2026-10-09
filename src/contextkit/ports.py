@@ -2,10 +2,25 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Protocol
 
-from contextkit.models import Scope, SubjectState
+from contextkit.models import Scope, SubjectState, require_revision, require_text
+
+
+def require_vector(vector: tuple[float, ...]) -> None:
+    if not isinstance(vector, tuple) or not vector:
+        raise ValueError("vectors must be nonempty tuples")
+    for value in vector:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError("vector values must be finite numbers")
+        try:
+            finite = math.isfinite(value)
+        except OverflowError:
+            finite = False
+        if not finite:
+            raise ValueError("vector values must be finite numbers")
 
 
 class SubjectStore(Protocol):
@@ -29,6 +44,11 @@ class VectorEntry:
     memory_id: str
     memory_version: int
     vector: tuple[float, ...]
+
+    def __post_init__(self) -> None:
+        require_text(self.memory_id, "memory_id")
+        require_revision(self.memory_version, "memory_version", 1)
+        require_vector(self.vector)
 
 
 @dataclass(frozen=True)

@@ -46,6 +46,8 @@ def search(scope, query, limit) -> list[VectorHit]: ...
 
 `replace` must atomically swap the entire scoped projection and reject lower revisions. Each entry includes a canonical memory ID and memory version. Equal revisions must not accept different entries. `search` returns scoped identities and scores, never canonical content.
 
+The reference adapter requires immutable tuples for the entries collection, each vector, and the query vector. `VectorEntry` validates a nonempty memory ID, a positive integer memory version, and finite numeric coordinates. Mutable lists are rejected so an external edit cannot change a committed projection without a new revision.
+
 A remote adapter can stage entries under a generation and update a generation pointer with compare-and-swap. Query only the active generation and garbage-collect old generations separately. A sequence of unguarded deletes and upserts is not an atomic replacement. Include embedding model/version in the index namespace; changing it requires a separate projection.
 
 `MemoryEngine.recall` treats the index as a candidate generator and revalidates its output against the store. Even a buggy adapter returning another tenant's hit cannot bypass this check, although it can cause missing results. Candidate oversampling is configurable through `candidate_limit`.

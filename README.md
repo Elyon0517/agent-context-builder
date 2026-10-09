@@ -6,7 +6,7 @@
 
 Evidence-backed memory and context snapshots for stateful applications.
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml) [![Version 0.1.0](https://img.shields.io/badge/Version-0.1.0-6366F1?style=flat-square)](CHANGELOG.md) [![Status alpha](https://img.shields.io/badge/Status-Alpha-F59E0B?style=flat-square)](#current-limits) [![License MIT](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE) [![Initial validation](https://img.shields.io/badge/Initial_validation-103_tests_passed-10B981?style=flat-square)](docs/validation.md) [![GitHub stars](https://img.shields.io/github/stars/Elyon0517/contextkit?style=social)](https://github.com/Elyon0517/contextkit/stargazers)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml) [![Version 0.1.1](https://img.shields.io/badge/Version-0.1.1-6366F1?style=flat-square)](CHANGELOG.md) [![Status alpha](https://img.shields.io/badge/Status-Alpha-F59E0B?style=flat-square)](#current-limits) [![License MIT](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE) [![Validation](https://img.shields.io/badge/Validation-114_tests_passed-10B981?style=flat-square)](docs/validation.md) [![GitHub stars](https://img.shields.io/github/stars/Elyon0517/contextkit?style=social)](https://github.com/Elyon0517/contextkit/stargazers)
 
 **Like ContextKit? [Give it a star ⭐](https://github.com/Elyon0517/contextkit)**
 
@@ -187,7 +187,7 @@ python -m pytest -m integration
 
 Use isolated test servers. The MongoDB tests create a uniquely named test database and drop that database afterward. The Redis test removes only its generated test key. No repository-hosted automated workflows are required.
 
-Initial release check results are recorded in [validation](docs/validation.md).
+Release check results are recorded in [validation](docs/validation.md).
 
 ## Current limits
 

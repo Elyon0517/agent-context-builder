@@ -6,12 +6,7 @@ import math
 from threading import RLock
 
 from contextkit.models import Scope, require_revision
-from contextkit.ports import VectorEntry, VectorHit
-
-
-def _validate_vector(vector: tuple[float, ...]) -> None:
-    if not vector or any(not math.isfinite(value) for value in vector):
-        raise ValueError("vectors must be nonempty and finite")
+from contextkit.ports import VectorEntry, VectorHit, require_vector
 
 
 def _unit(vector: tuple[float, ...]) -> tuple[float, ...]:
@@ -30,8 +25,12 @@ class InMemoryVectorIndex:
 
     def replace(self, scope: Scope, revision: int, entries: tuple[VectorEntry, ...]) -> bool:
         require_revision(revision, "revision")
+        if not isinstance(entries, tuple) or any(
+            not isinstance(entry, VectorEntry) for entry in entries
+        ):
+            raise ValueError("projection entries must be a tuple of VectorEntry values")
         for entry in entries:
-            _validate_vector(entry.vector)
+            require_vector(entry.vector)
         if len({entry.memory_id for entry in entries}) != len(entries):
             raise ValueError("duplicate memory ID in projection")
         if len({len(entry.vector) for entry in entries}) > 1:
@@ -46,7 +45,7 @@ class InMemoryVectorIndex:
             return True
 
     def search(self, scope: Scope, query: tuple[float, ...], limit: int) -> list[VectorHit]:
-        _validate_vector(query)
+        require_vector(query)
         require_revision(limit, "limit", 1)
         with self._lock:
             entries = self._projections.get(scope.key, (0, ()))[1]

@@ -133,3 +133,41 @@ def test_cosine_ranking_and_scope_isolation(scope):
         "opposite",
     ]
     assert index.search(Scope("foreign", scope.subject), (1.0, 0.0), 2) == []
+
+
+def test_mutable_vector_cannot_bypass_projection_revision():
+    vector = [1.0, 0.0]
+    with pytest.raises(ValueError, match="tuples"):
+        VectorEntry("memory", 1, vector)
+
+
+def test_mutable_entries_cannot_change_committed_projection(scope):
+    index = InMemoryVectorIndex()
+    initial = (VectorEntry("current", 1, (1.0, 0.0)),)
+    assert index.replace(scope, 1, initial)
+    with pytest.raises(ValueError, match="tuple of VectorEntry"):
+        index.replace(scope, 2, [VectorEntry("replacement", 1, (0.0, 1.0))])
+    hits = index.search(scope, (1.0, 0.0), 5)
+    assert [(hit.memory_id, hit.score) for hit in hits] == [("current", 1.0)]
+
+
+@pytest.mark.parametrize("vector", [(True,), ("1",), (10**1000,)])
+def test_invalid_vector_values_raise_validation_error(vector):
+    with pytest.raises(ValueError, match="finite numbers"):
+        VectorEntry("memory", 1, vector)
+
+
+@pytest.mark.parametrize("version", [True, 0, -1, 1.5])
+def test_vector_entry_versions_are_validated(version):
+    with pytest.raises(ValueError, match="memory_version"):
+        VectorEntry("memory", version, (1.0,))
+
+
+def test_empty_vector_memory_id_is_rejected():
+    with pytest.raises(ValueError, match="memory_id"):
+        VectorEntry("", 1, (1.0,))
+
+
+def test_mutable_query_vector_is_rejected(scope):
+    with pytest.raises(ValueError, match="tuples"):
+        InMemoryVectorIndex().search(scope, [1.0], 1)

@@ -1,5 +1,15 @@
 # Validation
 
+## Version 0.1.1 checks
+
+The vector input hardening was validated on October 9, 2026 in the same local environment as the initial release.
+
+- 114 tests passed, including the three live MongoDB and Redis integration tests.
+- Eleven additional regression cases cover mutable vector containers, mutable projection entries, invalid coordinates, identifiers, and memory versions.
+- Ruff, strict mypy, all three service-free examples, and source/wheel builds passed.
+
+Mutable inputs are rejected before projection replacement, so a rejected update preserves the current index. Empty projections and valid finite vectors remain supported.
+
 ## Initial release checks
 
 The initial implementation was validated on October 9, 2026 with Python 3.12.13 on macOS, MongoDB 8.2.0, and Redis 8.2.1.

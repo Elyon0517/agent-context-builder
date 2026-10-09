@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "contextkit-state"
-version = "0.1.0"
+version = "0.1.1"
 description = "Evidence-backed memory and context snapshots for stateful applications"
 readme = "README.md"
 requires-python = ">=3.11"
