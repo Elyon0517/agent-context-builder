@@ -54,6 +54,6 @@ A remote adapter can stage entries under a generation and update a generation po
 
 ## Application sources and runtimes
 
-Implement `ContextSource.read(scope)` using your application's authorized records. Use declared keys and revisions; do not include database credentials or exception details. Source providers can read PostgreSQL, MongoDB, an API, or application memory. ContextKit does not assume their underlying technology.
+Implement `ContextSource.read(scope)` using your application's authorized records. Use declared keys and revisions; do not include database credentials or exception details. Source providers can read PostgreSQL, MongoDB, an API, or application memory. Agent Context Builder does not assume their underlying technology.
 
 Compile once at the start of each turn. Store the snapshot ID beside the interaction record if you need to explain which state was consumed. Pass `snapshot.render()` as explicitly marked data to your runtime, retaining system rules separately. The library does not authenticate users, open network tools, or authorize current-resource access.

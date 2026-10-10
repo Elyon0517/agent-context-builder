@@ -1,6 +1,8 @@
 <div align="center">
 
-# ContextKit
+# Agent Context Builder
+
+原名 **ContextKit**。本次调整仓库名称；Python 包名、import 路径和 CLI 命令保持兼容。
 
 **[English](README.md) · 简体中文**
 
@@ -8,9 +10,9 @@
 
 面向有状态应用的会话与上下文编排组件。
 
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml) [![Version](https://img.shields.io/badge/version-0.2.0-indigo)](CHANGELOG.md) [![Validation](https://img.shields.io/badge/validation-123_tests_passed-green)](docs/validation.md) [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![Alpha](https://img.shields.io/badge/status-alpha-orange)](#limitations) [![Stars](https://img.shields.io/github/stars/Elyon0517/contextkit?style=flat)](https://github.com/Elyon0517/contextkit/stargazers)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml) [![Version](https://img.shields.io/badge/version-0.2.0-indigo)](CHANGELOG.md) [![Validation](https://img.shields.io/badge/validation-123_tests_passed-green)](docs/validation.md) [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![Alpha](https://img.shields.io/badge/status-alpha-orange)](#limitations) [![Stars](https://img.shields.io/github/stars/Elyon0517/agent-context-builder?style=flat)](https://github.com/Elyon0517/agent-context-builder/stargazers)
 
-**喜欢这个项目？ [请点一个 Star ⭐](https://github.com/Elyon0517/contextkit)**
+**喜欢这个项目？ [请点一个 Star ⭐](https://github.com/Elyon0517/agent-context-builder)**
 
 [Architecture](docs/architecture.md) · [Examples](examples) · [Validation](docs/validation.md) · [Contributing](CONTRIBUTING.md)
 
@@ -21,7 +23,7 @@ flowchart TD
     Q[Current query + user/session] --> M[ContextManager]
     H[Session history + summary] --> M
     R[Relevant memory IDs] --> C[ContextCompiler]
-    S[Canonical memory via Agent Memory Kit] --> C
+    S[Canonical memory via Versioned Agent Memory] --> C
     F[Profile / RAG / application sources] --> C
     C --> M
     M --> B[Serialized context + token budget]
@@ -36,18 +38,18 @@ flowchart TD
 
 | 仓库 | 职责 |
 | --- | --- |
-| [Agent Memory Kit](https://github.com/Elyon0517/agent-memory-kit) | 长期记忆、存储、检索、会话历史与摘要状态 |
-| **ContextKit** | 会话上下文组装、来源仲裁与预算 |
-| [FlowEval](https://github.com/Elyon0517/floweval) | 独立实验与策略评测 |
+| [Versioned Agent Memory](https://github.com/Elyon0517/versioned-agent-memory) | 长期记忆、存储、检索、会话历史与摘要状态 |
+| **Agent Context Builder** | 会话上下文组装、来源仲裁与预算 |
+| [Agent Strategy Eval](https://github.com/Elyon0517/agent-strategy-eval) | 独立实验与策略评测 |
 
-ContextKit 0.2 将记忆内核迁入 Agent Memory Kit，避免重复维护。原有 `contextkit.MemoryEngine`、模型与存储 adapter 导入保留兼容性。ContextKit 负责上下文编排，不执行模型或工具。
+Agent Context Builder 0.2 将记忆内核迁入 Versioned Agent Memory，避免重复维护。原有 `contextkit.MemoryEngine`、模型与存储 adapter 导入保留兼容性。Agent Context Builder 负责上下文编排，不执行模型或工具。
 
 ## 快速上手
 
-需要 Python 3.11+。Git 安装会解析固定版本的 Memory Kit。当前通过 GitHub 分发，尚未发布到 PyPI。
+需要 Python 3.11+。Git 安装会解析固定版本的 Versioned Agent Memory。当前通过 GitHub 分发，尚未发布到 PyPI。
 
 ```bash
-pip install "contextkit-state @ git+https://github.com/Elyon0517/contextkit.git@v0.2.0"
+pip install "contextkit-state @ git+https://github.com/Elyon0517/agent-context-builder.git@v0.2.0"
 ```
 
 ```python
@@ -95,7 +97,7 @@ print(context.render())
 
 目前为 alpha，使用同步接口，会话存储驻留进程内。没有内置模型调用、agent 执行、工具生命周期或 tokenizer。各来源分别读取，不提供跨来源事务；已返回的快照无法撤回。ContextCompiler 使用字符预算，ContextManager 另使用调用方 token 计数器。
 
-超限时依次移除摘要、较早消息、低优先级记忆与事实。若摘要被移除，已被摘要覆盖的历史消息不会重新恢复。当前 query 和结构不截断；它们自身超限时抛出 ContextBudgetExceeded。应用额外添加的 prompt/工具文本需要预留预算。记忆评分、过期和持久化边界见 [Agent Memory Kit](https://github.com/Elyon0517/agent-memory-kit)。
+超限时依次移除摘要、较早消息、低优先级记忆与事实。若摘要被移除，已被摘要覆盖的历史消息不会重新恢复。当前 query 和结构不截断；它们自身超限时抛出 ContextBudgetExceeded。应用额外添加的 prompt/工具文本需要预留预算。记忆评分、过期和持久化边界见 [Versioned Agent Memory](https://github.com/Elyon0517/versioned-agent-memory)。
 
 ## 本地开发
 

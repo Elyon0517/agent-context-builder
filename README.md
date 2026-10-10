@@ -1,6 +1,8 @@
 <div align="center">
 
-# ContextKit
+# Agent Context Builder
+
+Formerly **ContextKit**. Repository branding has changed; Python package names, imports and CLI commands remain compatible.
 
 **English · [简体中文](README.zh-CN.md)**
 
@@ -8,9 +10,9 @@
 
 Session and context orchestration for stateful applications.
 
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml) [![Version](https://img.shields.io/badge/version-0.2.0-indigo)](CHANGELOG.md) [![Validation](https://img.shields.io/badge/validation-123_tests_passed-green)](docs/validation.md) [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![Alpha](https://img.shields.io/badge/status-alpha-orange)](#limitations) [![Stars](https://img.shields.io/github/stars/Elyon0517/contextkit?style=flat)](https://github.com/Elyon0517/contextkit/stargazers)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml) [![Version](https://img.shields.io/badge/version-0.2.0-indigo)](CHANGELOG.md) [![Validation](https://img.shields.io/badge/validation-123_tests_passed-green)](docs/validation.md) [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![Alpha](https://img.shields.io/badge/status-alpha-orange)](#limitations) [![Stars](https://img.shields.io/github/stars/Elyon0517/agent-context-builder?style=flat)](https://github.com/Elyon0517/agent-context-builder/stargazers)
 
-**Find this useful? [Give it a star ⭐](https://github.com/Elyon0517/contextkit)**
+**Find this useful? [Give it a star ⭐](https://github.com/Elyon0517/agent-context-builder)**
 
 [Architecture](docs/architecture.md) · [Examples](examples) · [Validation](docs/validation.md) · [Contributing](CONTRIBUTING.md)
 
@@ -21,7 +23,7 @@ flowchart TD
     Q[Current query + user/session] --> M[ContextManager]
     H[Session history + summary] --> M
     R[Relevant memory IDs] --> C[ContextCompiler]
-    S[Canonical memory via Agent Memory Kit] --> C
+    S[Canonical memory via Versioned Agent Memory] --> C
     F[Profile / RAG / application sources] --> C
     C --> M
     M --> B[Serialized context + token budget]
@@ -36,18 +38,18 @@ flowchart TD
 
 | Repository | Responsibility |
 | --- | --- |
-| [Agent Memory Kit](https://github.com/Elyon0517/agent-memory-kit) | Long-term memory, storage, retrieval, session history and summary state |
-| **ContextKit** | Session context assembly, source arbitration and budgeting |
-| [FlowEval](https://github.com/Elyon0517/floweval) | Independent experiments and strategy evaluation |
+| [Versioned Agent Memory](https://github.com/Elyon0517/versioned-agent-memory) | Long-term memory, storage, retrieval, session history and summary state |
+| **Agent Context Builder** | Session context assembly, source arbitration and budgeting |
+| [Agent Strategy Eval](https://github.com/Elyon0517/agent-strategy-eval) | Independent experiments and strategy evaluation |
 
-ContextKit 0.2 delegates its memory kernel to Agent Memory Kit rather than maintaining a duplicate. Existing `contextkit.MemoryEngine`, models and storage adapter imports remain compatibility exports. ContextKit owns orchestration; it does not execute models or tools.
+Agent Context Builder 0.2 delegates its memory kernel to Versioned Agent Memory rather than maintaining a duplicate. Existing `contextkit.MemoryEngine`, models and storage adapter imports remain compatibility exports. Agent Context Builder owns orchestration; it does not execute models or tools.
 
 ## Quick start
 
-Python 3.11+. Git installation resolves the pinned Memory Kit release. Packages are currently distributed through GitHub, not PyPI.
+Python 3.11+. Git installation resolves the pinned Versioned Agent Memory release. Packages are currently distributed through GitHub, not PyPI.
 
 ```bash
-pip install "contextkit-state @ git+https://github.com/Elyon0517/contextkit.git@v0.2.0"
+pip install "contextkit-state @ git+https://github.com/Elyon0517/agent-context-builder.git@v0.2.0"
 ```
 
 ```python
@@ -95,7 +97,7 @@ Without a retrieval callback, all active canonical memories are considered. RAG/
 
 Early alpha, synchronous interfaces. Session storage is currently process-local. There is no built-in model call, agent execution, tool lifecycle or tokenizer. Sources are read separately, without a transaction across providers; an already returned snapshot cannot be revoked. `ContextCompiler` uses characters; `ContextManager` additionally uses your token counter.
 
-On overflow the manager removes summary first, then oldest recent messages, lower-priority memories, and facts. Messages already covered by a summary are not restored if the summary is omitted. Query and structural envelope are never truncated; if those alone exceed the budget, `ContextBudgetExceeded` is raised. Caller-added prompt/tool text must be accounted for via reservations. Memory ranking/expiry/persistence limits belong to [Agent Memory Kit](https://github.com/Elyon0517/agent-memory-kit).
+On overflow the manager removes summary first, then oldest recent messages, lower-priority memories, and facts. Messages already covered by a summary are not restored if the summary is omitted. Query and structural envelope are never truncated; if those alone exceed the budget, `ContextBudgetExceeded` is raised. Caller-added prompt/tool text must be accounted for via reservations. Memory ranking/expiry/persistence limits belong to [Versioned Agent Memory](https://github.com/Elyon0517/versioned-agent-memory).
 
 ## Development
 
