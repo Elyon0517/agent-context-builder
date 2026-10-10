@@ -115,4 +115,6 @@ The default suite skips three live service tests. [Validation](docs/validation.m
 
 ## License
 
-[MIT](LICENSE) © Elyon Li
+Licensed under the [MIT License](LICENSE).
+
+Copyright © 2026 Honghao Li.
