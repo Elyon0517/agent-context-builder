@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you discuss or build on this project, please cite its original repository."
+type: software
+title: "agent-context-builder"
+authors:
+  - family-names: "Li"
+    given-names: "Honghao"
+repository-code: "https://github.com/Elyon0517/agent-context-builder"
+url: "https://github.com/Elyon0517/agent-context-builder"
+license: MIT
