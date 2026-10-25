@@ -118,3 +118,10 @@ mypy
 本项目采用 [MIT License](LICENSE)。
 
 Copyright © 2026 Honghao Li.
+
+## 来源、版权与署名
+
+原始仓库：[Elyon0517/agent-context-builder](https://github.com/Elyon0517/agent-context-builder)。
+许可及第三方材料边界见 [COPYRIGHT.md](COPYRIGHT.md)，引用信息见 [CITATION.cff](CITATION.cff)。
+请按适用许可证保留版权和许可声明；文章或演示中附上原仓库链接是署名建议，
+不构成对已有开源许可的额外限制。使用或提及本项目不代表作者为相关产品背书。
